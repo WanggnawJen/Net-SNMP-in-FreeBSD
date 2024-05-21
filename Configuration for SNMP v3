@@ -1,0 +1,36 @@
+Net-snmp (5.9.4,1) in FreeBSD 14
+=================================
+
+pkg  install  net-snmp
+
+
+vi  /etc/rc.conf
+
+	snmpd_enable="YES"
+	snmpd_flags="-a -r"
+	snmpd_conffile="/usr/local/etc/snmpd.conf"
+
+
+scp  /usr/local/share/snmp/snmpd.conf.example   /usr/local/etc/snmpd.conf
+
+vi /usr/local/etc/snmpd.conf
+
+		>>>  agentAddress tcp:161,tcp6:[::1]:161,udp:161
+		>>>  rocommunity public  default    -V systemonly		(readonly public for basic info - v2c )
+		>>>  rouser   authOnlyUser								(full access for authenticated user - v3)
+		
+		
+service  snmpd  stop
+
+net-snmp-config	 --create-snmpv3-user  -ro  -a SHA  -A 'snmpauth'  -x AES  -X 'snmpencr'  roUser1
+
+			----->   adding the following line to /var/net-snmp/snmpd.conf:
+				-----> 	 createUser roUser1 SHA "snmpauth"  AES "snmpencr"
+			----->   adding the following line to /usr/local/share/snmp/snmpd.conf:
+				----->   rouser   roUser1
+
+service  snmpd   start
+
+
+netstat -an | grep 161
+
